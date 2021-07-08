@@ -1,0 +1,385 @@
+<html>
+<style>
+.error {
+  color:red;
+}
+.title {
+  text-align: center;
+  font-weight: 600;
+}
+.modal-title {
+  width: 100%;
+}
+.body-container {
+  width: 90%;
+  margin: 0 auto;
+}
+</style>
+<head>
+<div class="page-header">
+  <h1 class="title">Reservations</h1>
+</div>
+</head>
+<body>
+<div class="body-container">
+  <div class="table-responsive">
+    <table id="reservations-table" class="table">
+      <thead>
+        <tr>
+          <th scope="col">ID</th>
+          <th scope="col">Customer Name</th>
+          <th scope="col">Customer Phone Number</th>
+          <th scope="col">Reservation Code</th>
+          <th scope="col">Base ID</th>
+          <th scope="col">Car ID</th>
+          <th scope="col">Car Model</th>
+          <th scope="col">Car Registration Number</th>
+          <th scope="col">Daily cost</th>
+          <th scope="col">Deposit</th>
+          <th scope="col">Status</th>
+        </tr>
+      </thead>
+      <tbody id="table_content">
+      </tbody>
+    </table>
+  </div>
+
+  <div class="modal fade" id="status-modal" tabindex="-1" role="dialog" aria-labelledby="statusModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+      <div class="modal-content">
+        <form id="status-form">
+          <div class="modal-header">
+            <h4 class="modal-title" id="statusModalTitle">Change status
+              <button type="button" style="float: right; margin-top: -1rem;" class="close" data-dismiss="modal" aria-label="Close">
+                  <span aria-hidden="true">&times;</span>
+              </button>
+            </h4>
+          </div>
+          <div class="modal-body">
+            <div class="form-group">
+              <label>Status</label>
+              <select name="status" class="form-control" required="true" >
+                <option value="" disabled selected>Choose your option</option>
+                <option value="PENDING">PENDING</option>
+                <option value="RENTED OUT">RENTED OUT</option>
+                <option value="FINISHED">FINISHED</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <input type="hidden" name="id" class="form-control"></input>
+            </div>
+            <div class="form-group">
+              <input type="hidden" name="car_id" class="form-control"></input>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-danger" data-dismiss="modal">Close</button>
+            <button type="submit" id="register_button" class="btn btn-success">Submit</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+  
+  <div class="modal fade" id="confirm-modal" tabindex="-1" role="dialog" aria-labelledby="confirmModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+      <div class="modal-content">
+        <form id="confirm-form">
+          <div class="modal-header" style="text-align: center;">
+            <h4 class="modal-title" id="confirm-modal-label" style="display:inline-block;">Are you sure?</h4>
+          </div>
+          <div class="modal-footer" style="border: none;">
+            <button type="button" class="btn btn-success" onclick="cancel_delete_modal()">No</button>
+            <button type="submit" class="btn btn-danger">Delete reservation</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+<script>
+get_reservations();
+
+function get_reservations() {
+  $.ajax({
+    url: "rest/reservations",
+    type: "GET",
+    beforeSend: function(xhr) {
+      xhr.setRequestHeader('authorization', 'Bearer ' +  localStorage.getItem("user_token"));
+    },
+    success: function(data) {
+      var dataSet = [];
+      for(var i = 0; i < data.length; i++){
+        dataSet.push([
+          data[i].id,
+          data[i].customer_name,
+          data[i].customer_phone_number,
+          data[i].reservation_code,
+          data[i].base_id,
+          data[i].car_id,
+          data[i].car_model,
+          data[i].car_registration_number,
+          data[i].daily_cost,
+          data[i].deposit,
+          data[i].status
+        ]);
+      }
+
+      $("#reservations-table").DataTable({
+        data: dataSet,
+        columns: [
+          {title: "ID", visible:false},
+          {title: "Customer Name"},
+          {title: "Customer Phone Number"},
+          {title: "Reservation Code"},
+          {title: "Base ID"},
+          {title: "Car ID"},
+          {title: "Car Model"},
+          {title: "Car Registration Number"},
+          {title: "Daily cost"},
+          {title: "Deposit"},
+          {title: "Status"}
+        ],
+        dom: 'Bfrtip',
+        buttons: [
+          {
+            text: 'Delete reservation',
+            action: function ( e, dt, button, config ) {
+              if ($('#reservations-table').DataTable().row('.selected').data()) {
+                var id = $('#reservations-table').DataTable().row('.selected').data()[0];
+                confirm_modal_show(id);
+              } else {
+                toastr.error("Please select a reservation");
+              }
+            }
+          },
+          {
+            text: 'Change status',
+            action: function ( e, dt, button, config ) {
+              if ($('#reservations-table').DataTable().row('.selected').data()) {
+                var id = $('#reservations-table').DataTable().row('.selected').data()[0];
+                open_modal_status(id);
+              } else {
+                toastr.error("Please select a reservation");
+              }
+            }
+          }
+        ],
+        "pageLength": 5,
+        "lengthMenu": [2, 5, 10, 25, 50, "All"]
+      });
+    }
+  })
+}
+
+function confirm_modal_show(i) {
+  $("#confirm-modal").modal('show');
+  localStorage.setItem('remove_reservation_id', i);
+}
+
+$('#confirm-form').validate({
+  submitHandler: function(form) {
+    var id = localStorage.getItem('remove_reservation_id');
+    delete_reservation(id);
+    localStorage.removeItem('remove_reservation_id');
+    $("#confirm-modal").modal('hide');
+  }
+});
+
+function cancel_delete_modal() {
+  localStorage.removeItem('remove_reservation_id');
+  $("#confirm-modal").modal('hide');
+}
+
+function delete_reservation(id) {
+  $.ajax({
+    url: 'rest/reservation/'+id,
+    method: 'DELETE',
+    success: function(result) {
+      toastr.success('Deleted');
+      $('#reservations-table').DataTable().clear().destroy();
+      get_reservations();
+    },
+    error: function() {
+      toastr.success('Not deleted');
+    }
+  });
+}
+
+$(document).ready(function() {
+  $('#table_content').on( 'click', 'tr', function () {
+    if ($(this).hasClass('selected')) {
+      $(this).removeClass('selected');
+    } else {
+      $('.selected').toggleClass('selected');
+      $(this).toggleClass('selected');
+    }
+  });
+});
+
+function open_modal_status(id) {
+  $.ajax({
+    url: 'rest/reservation/'+id,
+    method: 'GET',
+    beforeSend: function(xhr){
+      xhr.setRequestHeader('authorization', 'Bearer ' +  localStorage.getItem("user_token"));
+    },
+    success: function(data){
+      $('#status-modal').modal('toggle');
+      $("#status-form select[name=status]").val(data[0].status);
+      $("#status-form input[name=id]").val(data[0].id);
+      $("#status-form input[name=car_id]").val(data[0].car_id);
+    },
+    error: function(){
+      toastr.success('There is something wrong with the modal');
+    }
+  });
+}
+
+function get_cars() {
+  $.get('rest/cars', function(data) {
+    var dataSet = [];
+    for (var i = 0; i < data.length; i++) {
+      dataSet.push([
+        data[i].id,
+        data[i].base_name,
+        data[i].location,
+        data[i].phone_number,
+        data[i].model,
+        data[i].production_year,
+        data[i].fuel,
+        data[i].deposit,
+        data[i].daily_cost,
+        data[i].availability,
+      ]);
+    }
+
+    var delete_button = {
+      text: 'Delete car',
+      action: function ( e, dt, button, config ) {
+        if ($('#cars-table').DataTable().row('.selected').data()) {
+          var id = $('#cars-table').DataTable().row('.selected').data()[0];
+          delete_car(id);
+        } else {
+          toastr.error("Please select a car");
+        }
+      }
+    }
+
+    var reserve_button = {
+      text: 'Reserve',
+      action: function ( e, dt, button, config ) {
+        if ($('#cars-table').DataTable().row('.selected').data()) {
+          var id = $('#cars-table').DataTable().row('.selected').data()[0];
+          var data = $('#cars-table').DataTable().row('.selected').data()[9];
+          if (String(data)=='NO') {
+            toastr.error("That car is not available");
+          } else {
+            var code=Math.round(Math.random()*100000);
+            var user = Utils.parseJwt(localStorage.getItem('user_token'));
+            var name = user.data.name + " " +user.data.surname;
+            var phone_number = user.data.phone_number;
+            open_reservation_modal(id, name, phone_number, code);
+          }
+        } else {
+          toastr.error("Please select a car");
+        }
+      }
+    }
+
+    var add_button = {
+      text: 'Add new car',
+      action: function ( e, dt, button, config ) {
+        $('#add-car-modal').modal('toggle');
+      }
+    }
+
+    var edit_button = {
+      text: 'Edit a car',
+      action: function ( e, dt, button, config ) {
+        if($('#cars-table').DataTable().row('.selected').data()) {
+          var id = $('#cars-table').DataTable().row('.selected').data()[0];
+          open_car_edit_modal(id);
+        } else {
+          toastr.error("Please select a car");
+        }
+      }
+    }
+
+    var buttons = [];
+
+    if (get_logged_user_id()) {
+      if (get_logged_user_admin()) {
+        buttons.push(delete_button);
+        buttons.push(add_button);
+        buttons.push(edit_button);
+      } else {
+        buttons.push(reserve_button);
+      }
+    }
+
+    $("#cars-table").DataTable({
+      data: dataSet,
+      columns: [
+        {title: "ID", visible:false},
+        {title: "Base Name"},
+        {title: "Base Location"},
+        {title: "Phone Number"},
+        {title: "Model"},
+        {title: "Production Year"},
+        {title: "Fuel"},
+        {title: "Deposit"},
+        {title: "Daily Cost"},
+        {title: "Availability"}
+      ],
+      dom: 'Bfrtip',
+      buttons: buttons,
+      "pageLength": 5,
+      "lengthMenu": [2, 5, 10, 25, 50, "All"]
+    });
+  })
+}
+
+$('#status-form').validate({
+  submitHandler: function(form) {
+    var car_id = $('#status-form input[name="car_id"]').val()
+    var reservation = {
+      id: $('#status-form input[name="id"]').val(),
+      status: $('#status-form select[name="status"]').val()
+    }
+    $.post( "rest/reservation/update", reservation ).done(function(data) {
+      if (reservation.status == "FINISHED") {
+        $.post('rest/car/availability/yes/' + car_id, car_id).done(function(data) {
+          toastr.success('You have updated the status');
+          $('#status-modal').modal('toggle');
+          $('#reservations-table').DataTable().clear().destroy();
+          get_reservations();
+          $('#cars-table').DataTable().clear().destroy();
+          get_cars();
+
+        }).fail(function(error) {
+          toastr.error(error.responseText);
+        });
+      } else {
+        $.post('rest/car/availability/no/' + car_id, car_id).done(function(data) {
+          toastr.success('You have updated the status');
+          $('#status-modal').modal('toggle');
+          $('#reservations-table').DataTable().clear().destroy();
+          get_reservations();
+          $('#cars-table').DataTable().clear().destroy();
+          get_cars();
+
+        }).fail(function(error) {
+          toastr.error(error.responseText);
+        });
+      }
+      
+
+    }).fail(function(error) {
+      toastr.error(error.responseText);
+    });
+  }
+});
+</script>
+</html>

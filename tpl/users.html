@@ -1,0 +1,291 @@
+<html>
+<style>
+.error {
+  color:red;
+}
+.title {
+  text-align: center;
+  font-weight: 600;
+}
+.modal-title {
+  width: 100%;
+}
+.body-container {
+  width: 90%;
+  margin: 0 auto;
+}
+.table {
+  width: 100%;
+}
+</style>
+<head>
+<div class="page-header">
+  <h1 class="title">Users</h1>
+</div>
+<link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.10.20/css/jquery.dataTables.min.css"/>
+</head>
+<body>
+<div class="body-container">
+  <div class="table-responsive">
+    <table id="users-table" class="table">
+      <thead>
+        <tr>
+          <th scope="col">ID</th>
+          <th scope="col">Name</th>
+          <th scope="col">Surname</th>
+          <th scope="col">Email</th>
+          <th scope="col">Street Address</th>
+          <th scope="col">City</th>
+          <th scope="col">Country</th>
+          <th scope="col">Phone Number</th>
+          <th scope="col">Password Hash</th>
+        </tr>
+      </thead>
+      <tbody id="table_content">
+      </tbody>
+    </table>
+  </div>
+
+  <div class="modal fade" id="user-edit-modal" tabindex="-1" role="dialog" aria-labelledby="userEditModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+      <div class="modal-content">
+        <form id="user-edit-form">
+          <div class="modal-header">
+            <h4 class="modal-title" id="userEditModalTitle">Enter user data
+              <button type="button" style="float: right; margin-top: -1rem;" class="close" data-dismiss="modal" aria-label="Close">
+                  <span aria-hidden="true">&times;</span>
+              </button>
+            </h4>
+          </div>
+          <div class="modal-body">
+            <div class="form-group">
+              <input type="hidden" name="id" class="form-control"></input>
+            </div>
+            <div class="form-group">
+              <label for="fname">First Name:</label>
+              <input type="text" name="fname" class="form-control" placeholder="Enter your name" required="true"></input>
+            </div>
+            <div class="form-group">
+              <label for="lname">Last Name:</label>
+              <input type="text" name="lname" class="form-control" placeholder="Enter your surname" required="true"></input>
+            </div>
+            <div class="form-group">
+                <label>Email address</label>
+                <input type="email" class="form-control" aria-describedby="emailHelp" placeholder="Enter email" required="true">
+            </div>
+            <div class="form-group">
+              <label for="address">Address:</label>
+              <input type="text" name="address" class="form-control" placeholder="Enter your address" required="true"></input>
+            </div>
+            <div class="form-group">
+              <label for="city">City:</label>
+              <input type="text" name="city" class="form-control" placeholder="Enter your city" required="true"></input>
+            </div>
+            <div class="form-group">
+              <label for="country">Country:</label>
+              <input type="text" name="country" class="form-control" placeholder="Enter your country" required="true"></input>
+            </div>
+            <div class="form-group">
+              <label for="phone_number">Phone number:</label>
+              <input type="number" name="phone_number" class="form-control" placeholder="Enter your phone number" required="true"></input>
+            </div>
+            <div class="form-group">
+                <label>Password</label>
+                <input type="password" class="form-control" placeholder="Password" required="true" minlength="8">
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-danger" data-dismiss="modal">Close</button>
+            <button type="submit" class="btn btn-success">Update</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal fade" id="confirm-modal" tabindex="-1" role="dialog" aria-labelledby="confirmModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+      <div class="modal-content">
+        <form id="confirm-form">
+          <div class="modal-header" style="text-align: center;">
+            <h4 class="modal-title" id="confirm-modal-label" style="display:inline-block;">Are you sure?</h4>
+          </div>
+          <div class="modal-footer" style="border: none;">
+            <button type="button" class="btn btn-success" onclick="cancel_delete_modal()">No</button>
+            <button type="submit" class="btn btn-danger">Delete user</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+<script>
+get_non_workers();
+
+function get_non_workers() {
+  $.ajax({
+    url: "rest/non-workers",
+    type: "GET",
+    beforeSend: function(xhr) {
+      xhr.setRequestHeader('authorization', 'Bearer ' +  localStorage.getItem("user_token"));
+    },
+    success: function(data) {
+      var dataSet = [];
+      for(var i = 0; i < data.length; i++){
+        dataSet.push([
+          data[i].id,
+          data[i].name,
+          data[i].surname,
+          data[i].email,
+          data[i].street_address,
+          data[i].city,
+          data[i].country,
+          data[i].phone_number,
+          data[i].password,
+        ]);
+      }
+
+      $("#users-table").DataTable({
+        data: dataSet,
+        responsive: true,
+        columns: [
+          {title: "ID", visible:false},
+          {title: "Name"},
+          {title: "Surname"},
+          {title: "Email"},
+          {title: "Street Address"},
+          {title: "City"},
+          {title: "Country"},
+          {title: "Phone Number"},
+          {title: "Password Hash"}
+        ],
+        dom: 'Bfrtip',
+        buttons: [
+        {
+          text: 'Delete user',
+            action: function ( e, dt, button, config ) {
+              if ($('#users-table').DataTable().row('.selected').data()) {
+                var id = $('#users-table').DataTable().row('.selected').data()[0];
+                confirm_modal_show(id);
+              } else {
+                toastr.error("Please select an user");
+              }
+            }
+          },
+          {
+            text: 'Update user',
+            action: function ( e, dt, button, config ) {
+              if ($('#users-table').DataTable().row('.selected').data()) {
+                var id = $('#users-table').DataTable().row('.selected').data()[0];
+                open_user_edit_modal(id);
+              } else {
+                toastr.error("Please select an user");
+              }
+            }
+          }
+        ],
+        "pageLength": 5,
+        "lengthMenu": [2, 5, 10, 25, 50, "All"]
+      });
+    }
+  })
+}
+
+function confirm_modal_show(i) {
+  $("#confirm-modal").modal('show');
+  localStorage.setItem('remove_user_id', i);
+}
+
+$('#confirm-form').validate({
+  submitHandler: function(form) {
+    var id = localStorage.getItem('remove_user_id');
+    delete_non_worker(id);
+    localStorage.removeItem('remove_user_id');
+    $("#confirm-modal").modal('hide');
+  }
+});
+
+function cancel_delete_modal() {
+  localStorage.removeItem('remove_user_id');
+  $("#confirm-modal").modal('hide');
+}
+
+function delete_non_worker(id) {
+  $.ajax({
+    url: 'rest/user/'+id,
+    method: 'DELETE',
+    success: function(result) {
+        toastr.success('Deleted');
+        $('#users-table').DataTable().clear().destroy();
+        get_non_workers();
+    },
+    error: function() {
+      toastr.success('Not deleted');
+    }
+  });
+}
+
+function open_user_edit_modal(id) {
+  $.ajax({
+    url: 'rest/user/'+id,
+    method: 'GET',
+    beforeSend: function(xhr) {
+      xhr.setRequestHeader('authorization', 'Bearer ' +  localStorage.getItem("user_token"));
+    },
+    success: function(data) {
+      $('#user-edit-modal').modal('toggle');
+      $('#user-edit-form input[name="fname"]').val(data.name);
+      $('#user-edit-form input[name="lname"]').val(data.surname);
+      $('#user-edit-form input[name="id"]').val(data.id);
+      $('#user-edit-form input[type="email"]').val(data.email);
+      $('#user-edit-form input[name="city"]').val(data.city);
+      $('#user-edit-form input[name="country"]').val(data.country);
+      $("#user-edit-form input[name=address]").val(data.street_address);
+      $('#user-edit-form input[type="password"]').val(data.password);
+      $('#user-edit-form input[name="phone_number"]').val(data.phone_number);
+    },
+    error: function() {
+      toastr.error(error.responseText);
+    }
+  });
+}
+
+$('#user-edit-form').validate({
+  submitHandler: function(form) {
+    var user = {
+      id: $('#user-edit-form input[name="id"]').val(),
+      name: $('#user-edit-form input[name="fname"]').val(),
+      surname: $('#user-edit-form input[name="lname"]').val(),
+      email: $('#user-edit-form input[type="email"]').val(),
+      street_address: $('#user-edit-form input[name="address"]').val(),
+      city: $('#user-edit-form input[name="city"]').val(),
+      country: $('#user-edit-form input[name="country"]').val(),
+      phone_number: $('#user-edit-form input[name="phone_number"]').val(),
+      password: $('#user-edit-form input[type="password"]').val(),
+      job: '-',
+      admin: 0
+    }
+    $.post( "rest/users", user ).done(function(data) {
+      toastr.success('You have updated an user');
+      $('#user-edit-modal').modal('toggle');
+      $('#users-table').DataTable().clear().destroy();
+      get_non_workers();
+    }).fail(function(error) {
+      toastr.error(error.responseText);
+    });
+  }
+});
+
+$(document).ready(function() {
+  $('#table_content').on( 'click', 'tr', function () {
+    if ($(this).hasClass('selected')) {
+      $(this).removeClass('selected');
+    } else {
+      $('.selected').toggleClass('selected');
+      $(this).toggleClass('selected');
+    }
+  });
+});
+</script>
+</html>

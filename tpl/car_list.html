@@ -1,0 +1,569 @@
+<html>
+<style>
+.title {
+  text-align: center;
+  font-weight: 600;
+}
+.title {
+  text-align: center;
+  font-weight: 600;
+}
+.modal-title {
+  width: 100%;
+}
+.body-container {
+  width: 90%;
+  margin: 0 auto;
+}
+</style>
+<head>
+<div class="page-header">
+  <h1 class="title">Car List</h1>
+</div>
+</head>
+<body>
+<div class="body-container">
+  <div class="row">
+    <div class="col-md-12">
+      <div class="table-responsive">
+        <table id="cars-table" class="table">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Base Name</th>
+              <th>Base Location</th>
+              <th>Phone Number</th>
+              <th>Model</th>
+              <th>Production Year</th>
+              <th>Fuel</th>
+              <th>Deposit</th>
+              <th>Daily Cost</th>
+              <th>Availability</th>
+            </tr>
+          </thead>
+          <tbody id="table_content">
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal fade" id="reservationCodeModal" tabindex="-1" role="dialog" aria-labelledby="reservationCodeModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-notify modal-info" role="document">
+      <div class="modal-content text-center">
+        <div class="modal-header d-flex justify-content-center">
+          <p class="heading">Important notification</p>
+        </div>
+        <div class="modal-body">
+          <i class="fas fa-bell fa-4x animated rotateIn mb-4"></i>
+          <p>Please use your reservation code below while renting the reserved car.</p>
+          <a id="code"></a>
+        </div>
+        <div class="modal-footer flex-center">
+          <a type="button" class="btn btn-outline-info waves-effect" data-dismiss="modal">Close</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal fade" id="add-car-modal" tabindex="-1" role="dialog" aria-labelledby="addCarModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+      <div class="modal-content">
+        <form id="add-car-form">
+          <div class="modal-header">
+            <h4 class="modal-title" id="addCarModalTitle">Enter the car data below
+              <button type="button" style="float: right; margin-top: -1rem;" class="close" data-dismiss="modal" aria-label="Close">
+                  <span aria-hidden="true">&times;</span>
+              </button>
+            </h4>
+          </div>
+          <div class="modal-body">
+            <div class="form-group">
+              <label for="id_base">ID base:</label>
+              <input type="number" name="id_base" class="form-control" placeholder="Enter base ID" required="true"></input>
+            </div>
+            <div class="form-group">
+              <label for="model">Model:</label>
+              <input type="text" name="model" class="form-control" placeholder="Enter model name" required="true"></input>
+            </div>
+            <div class="form-group">
+              <label for="production_year">Production year:</label>
+              <input type="number" name="production_year" class="form-control" placeholder="Enter production year" required="true"></input>
+            </div>
+            <div class="form-group">
+              <label for="fuel">Fuel:</label>
+              <input type="text" name="fuel" class="form-control" placeholder="Enter fuel type" required="true"></input>
+            </div>
+            <div class="form-group">
+              <label for="registration_number">Registration Number:</label>
+              <input type="text" name="registration_number" class="form-control" placeholder="Enter registration number" required="true"></input>
+            </div>
+            <div class="form-group">
+              <label for="daily_cost">Daily cost:</label>
+              <input type="number" name="daily_cost" class="form-control" placeholder="Enter daily cost" required="true"></input>
+            </div>
+            <div class="form-group">
+              <label for="deposit">Deposit:</label>
+              <input type="number" name="deposit" class="form-control" placeholder="Enter deposit" required="true"></input>
+            </div>
+            <div class="form-group">
+              <label for="mileage">Mileage:</label>
+              <input type="number" name="mileage" class="form-control" placeholder="Enter mileage" required="true"></input>
+            </div>
+            <div class="form-group">
+              <label>Availability</label>
+              <select name="availability" class="form-control" required="true">
+                <option value="" disabled selected>Choose your option</option>
+                <option value="YES">YES</option>
+                <option value="NO">NO</option>
+              </select>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-danger" data-dismiss="modal">Close</button>
+            <button type="submit" class="btn btn-success">Submit</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal fade" id="car-edit-modal" tabindex="-1" role="dialog" aria-labelledby="editCarModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+      <div class="modal-content">
+        <form id="car-edit-form">
+          <div class="modal-header">
+            <h4 class="modal-title" id="editCarModalTitle">Enter the car data below
+              <button type="button" style="float: right; margin-top: -1rem;" class="close" data-dismiss="modal" aria-label="Close">
+                  <span aria-hidden="true">&times;</span>
+              </button>
+            </h4>
+          </div>
+          <div class="modal-body">
+            <div class="form-group">
+              <input type="hidden" name="id" class="form-control"></input>
+            </div>
+            <div class="form-group">
+              <label for="id_base">ID base:</label>
+              <input type="number" name="id_base" class="form-control" placeholder="Enter base ID" required="true"></input>
+            </div>
+            <div class="form-group">
+              <label for="model">Model:</label>
+              <input type="text" name="model" class="form-control" placeholder="Enter model name" required="true"></input>
+            </div>
+            <div class="form-group">
+              <label for="production_year">Production year:</label>
+              <input type="number" name="production_year" class="form-control" placeholder="Enter production year" required="true"></input>
+            </div>
+            <div class="form-group">
+              <label for="fuel">Fuel:</label>
+              <input type="text" name="fuel" class="form-control" placeholder="Enter fuel type" required="true"></input>
+            </div>
+            <div class="form-group">
+              <label for="registration_number">Registration Number:</label>
+              <input type="text" name="registration_number" class="form-control" placeholder="Enter registration number" required="true"></input>
+            </div>
+            <div class="form-group">
+              <label for="daily_cost">Daily cost:</label>
+              <input type="number" name="daily_cost" class="form-control" placeholder="Enter daily cost" required="true"></input>
+            </div>
+            <div class="form-group">
+              <label for="deposit">Deposit:</label>
+              <input type="number" name="deposit" class="form-control" placeholder="Enter deposit" required="true"></input>
+            </div>
+            <div class="form-group">
+              <label for="mileage">Mileage:</label>
+              <input type="number" name="mileage" class="form-control" placeholder="Enter mileage" required="true"></input>
+            </div>
+            <div class="form-group">
+              <label>Availability</label>
+              <select name="availability" class="form-control" required="true">
+                <option value="" disabled selected>Choose your option</option>
+                <option value="YES">YES</option>
+                <option value="NO">NO</option>
+              </select>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-danger" data-dismiss="modal">Close</button>
+            <button type="submit" class="btn btn-success">Update</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal fade" id="reservation-modal" tabindex="-1" role="dialog" aria-labelledby="reservationModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+      <div class="modal-content">
+        <form id="reservation-form">
+          <div class="modal-header">
+            <h4 class="modal-title" id="reservationModalTitle">Reservation
+              <button type="button" style="float: right; margin-top: -1rem;" class="close" data-dismiss="modal" aria-label="Close">
+                  <span aria-hidden="true">&times;</span>
+              </button>
+            </h4>
+          </div>
+          <div class="modal-body">
+            <div class="form-group">
+              <label for="name">Your name:</label>
+              <input type="text" name="name" class="form-control" readonly></input>
+            </div>
+            <div class="form-group">
+              <label for="phone_number">Your phone number:</label>
+              <input type="text" name="phone_number" class="form-control" readonly></input>
+            </div>
+            <div class="form-group">
+              <input type="hidden" name="code" class="form-control" readonly></input>
+            </div>
+            <div class="form-group">
+              <input type="hidden" name="base_id" class="form-control" readonly></input>
+            </div>
+            <div class="form-group">
+              <input type="hidden" name="car_id" class="form-control" readonly></input>
+            </div>
+            <div class="form-group">
+              <label for="model">Model:</label>
+              <input type="text" name="model" class="form-control" readonly></input>
+            </div>
+            <div class="form-group">
+              <input type="hidden" name="registration_number" class="form-control" readonly></input>
+            </div>
+            <div class="form-group">
+              <label for="daily_cost">Daily cost:</label>
+              <input type="number" name="daily_cost" class="form-control" readonly></input>
+            </div>
+            <div class="form-group">
+              <label for="deposit">Deposit:</label>
+              <input type="number" name="deposit" class="form-control" readonly></input>
+            </div>
+            <div class="form-group">
+              <input type="hidden" name="status" class="form-control" readonly></input>
+            </div>
+          </div>
+          <div class="modal-footer">
+              <button type="button" class="btn btn-secondary" data-dismiss="modal">Decline</button>
+              <button type="submit" class="btn btn-primary">Confirm</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal fade" id="confirm-modal" tabindex="-1" role="dialog" aria-labelledby="confirmModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+      <div class="modal-content">
+        <form id="confirm-form">
+          <div class="modal-header" style="text-align: center;">
+            <h4 class="modal-title" id="confirm-modal-label" style="display:inline-block;">Are you sure?</h4>
+          </div>
+          <div class="modal-footer" style="border: none;">
+            <button type="button" class="btn btn-success" onclick="cancel_delete_modal()">No</button>
+            <button type="submit" class="btn btn-danger">Delete car</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+
+<script>
+$(document).ready(function() {
+  get_cars();
+});
+
+function get_cars() {
+  $.get('rest/cars', function(data) {
+    var dataSet = [];
+    for (var i = 0; i < data.length; i++) {
+      dataSet.push([
+        data[i].id,
+        data[i].base_name,
+        data[i].location,
+        data[i].phone_number,
+        data[i].model,
+        data[i].production_year,
+        data[i].fuel,
+        data[i].deposit,
+        data[i].daily_cost,
+        data[i].availability,
+      ]);
+    }
+
+    var delete_button = {
+      text: 'Delete car',
+      action: function ( e, dt, button, config ) {
+        if ($('#cars-table').DataTable().row('.selected').data()) {
+          var id = $('#cars-table').DataTable().row('.selected').data()[0];
+          confirm_modal_show(id);
+        } else {
+          toastr.error("Please select a car");
+        }
+      }
+    }
+
+    var reserve_button = {
+      text: 'Reserve',
+      action: function ( e, dt, button, config ) {
+        if ($('#cars-table').DataTable().row('.selected').data()) {
+          var id = $('#cars-table').DataTable().row('.selected').data()[0];
+          var data = $('#cars-table').DataTable().row('.selected').data()[9];
+          if (String(data)=='NO') {
+            toastr.error("That car is not available");
+          } else {
+            var code=Math.round(Math.random()*100000);
+            var user = Utils.parseJwt(localStorage.getItem('user_token'));
+            var name = user.data.name + " " +user.data.surname;
+            var phone_number = user.data.phone_number;
+            open_reservation_modal(id, name, phone_number, code);
+          }
+        } else {
+          toastr.error("Please select a car");
+        }
+      }
+    }
+
+    var add_button = {
+      text: 'Add new car',
+      action: function ( e, dt, button, config ) {
+        $('#add-car-modal').modal('toggle');
+      }
+    }
+
+    var edit_button = {
+      text: 'Edit a car',
+      action: function ( e, dt, button, config ) {
+        if($('#cars-table').DataTable().row('.selected').data()) {
+          var id = $('#cars-table').DataTable().row('.selected').data()[0];
+          open_car_edit_modal(id);
+        } else {
+          toastr.error("Please select a car");
+        }
+      }
+    }
+
+    var buttons = [];
+
+    if (get_logged_user_id()) {
+      if (get_logged_user_admin()) {
+        buttons.push(delete_button);
+        buttons.push(add_button);
+        buttons.push(edit_button);
+      } else {
+        buttons.push(reserve_button);
+      }
+    }
+
+    $("#cars-table").DataTable({
+      data: dataSet,
+      columns: [
+        {title: "ID", visible:false},
+        {title: "Base Name"},
+        {title: "Base Location"},
+        {title: "Phone Number"},
+        {title: "Model"},
+        {title: "Production Year"},
+        {title: "Fuel"},
+        {title: "Deposit"},
+        {title: "Daily Cost"},
+        {title: "Availability"}
+      ],
+      dom: 'Bfrtip',
+      buttons: buttons,
+      "pageLength": 5,
+      "lengthMenu": [2, 5, 10, 25, 50, "All"]
+    });
+  })
+}
+
+$('#add-car-form').validate({
+  submitHandler: function(form) {
+    var car = {
+      id_base: $('#add-car-form input[name="id_base"]').val(),
+      model: $('#add-car-form input[name="model"]').val(),
+      production_year: $('#add-car-form input[name="production_year"]').val(),
+      fuel: $('#add-car-form input[name="fuel"]').val(),
+      registration_number: $('#add-car-form input[name="registration_number"]').val(),
+      daily_cost: $('#add-car-form input[name="daily_cost"]').val(),
+      deposit: $('#add-car-form input[name="deposit"]').val(),
+      mileage: $('#add-car-form input[name="mileage"]').val(),
+      availability: $('#add-car-form select[name="availability"]').val()
+    }
+    $.post( "rest/car", car ).done(function(data) {
+      toastr.success('You have added a car');
+      $('#add-car-modal').modal('toggle');
+      $('#cars-table').DataTable().clear().destroy();
+      get_cars();
+    }).fail(function(error) {
+      toastr.error(error.responseText);
+    });
+  }
+});
+
+function confirm_modal_show(i) {
+  $("#confirm-modal").modal('show');
+  localStorage.setItem('remove_car_id', i);
+}
+
+$('#confirm-form').validate({
+  submitHandler: function(form) {
+    var id = localStorage.getItem('remove_car_id');
+    delete_car(id);
+    localStorage.removeItem('remove_car_id');
+    $("#confirm-modal").modal('hide');
+  }
+});
+
+function cancel_delete_modal() {
+  localStorage.removeItem('remove_car_id');
+  $("#confirm-modal").modal('hide');
+}
+
+function open_car_edit_modal(id) {
+  $.ajax({
+    url: 'rest/car/'+id,
+    method: 'GET',
+    beforeSend: function(xhr) {
+      xhr.setRequestHeader('authorization', 'Bearer ' +  localStorage.getItem("user_token"));
+    },
+    success: function(data) {
+      $('#car-edit-modal').modal('toggle');
+      $("#car-edit-form input[name=id]").val(data.id);
+      $("#car-edit-form input[name=id_base]").val(data.id_base);
+      $("#car-edit-form input[name=model]").val(data.model);
+      $("#car-edit-form input[name=production_year]").val(data.production_year);
+      $("#car-edit-form input[name=fuel]").val(data.fuel);
+      $("#car-edit-form input[name=registration_number]").val(data.registration_number);
+      $("#car-edit-form input[name=daily_cost]").val(data.daily_cost);
+      $("#car-edit-form input[name=deposit]").val(data.deposit);
+      $("#car-edit-form input[name=mileage]").val(data.mileage);
+      $("#car-edit-form select[name=availability]").val(data.availability);
+    },
+    error: function() {
+      toastr.error(error.responseText);
+    }
+  });
+}
+
+function open_reservation_modal(id, name, phone_number, code) {
+  $.ajax({
+    url: 'rest/car/'+id,
+    method: 'GET',
+    success: function(data) {
+      $('#reservation-modal').modal('toggle');
+      $("#reservation-form input[name=name]").val(name);
+      $("#reservation-form input[name=phone_number]").val(phone_number);
+      $("#reservation-form input[name=base_id]").val(data.id_base);
+      $("#reservation-form input[name=model]").val(data.model);
+      $("#reservation-form input[name=registration_number]").val(data.registration_number);
+      $("#reservation-form input[name=daily_cost]").val(data.daily_cost);
+      $("#reservation-form input[name=deposit]").val(data.deposit);
+      $("#reservation-form input[name=status]").val("PENDING");
+      $("#reservation-form input[name=code]").val(code);
+      $("#reservation-form input[name=car_id]").val(id);
+    },
+    error: function() {
+      toastr.error(error.responseText);
+    }
+  });
+}
+
+$('#reservation-form').validate({
+  submitHandler: function(form) {
+    var id =  $('#reservation-form input[name="car_id"]').val();
+    var code = $('#reservation-form input[name="code"]').val();
+    var reservation = {
+      customer_name: $('#reservation-form input[name="name"]').val(),
+      customer_phone_number: $('#reservation-form input[name="phone_number"]').val(),
+      base_id: $('#reservation-form input[name="base_id"]').val(),
+      car_id: $('#reservation-form input[name="car_id"]').val(),
+      car_model: $('#reservation-form input[name="model"]').val(),
+      status: $('#reservation-form input[name="status"]').val(),
+      car_registration_number: $('#reservation-form input[name="registration_number"]').val(),
+      daily_cost: $('#reservation-form input[name="daily_cost"]').val(),
+      deposit: $('#reservation-form input[name="deposit"]').val(),
+      status: $('#reservation-form input[name="status"]').val(),
+      reservation_code: code
+    }
+    var reservation_info = {
+      car_id: id,
+      reservation_code: reservation.reservation_code
+    }
+    $.post( "rest/reservation", reservation ).done(function(data) {
+      $('#reservation-modal').modal('toggle');
+
+      $.post('rest/car/availability/no/'+id, id).done(function(data) {
+        toastr.success('You have reserved a car');
+        $('#cars-table').DataTable().clear().destroy();
+        get_cars();
+        
+        $.post("rest/reservationCode", reservation_info).done(function(data) {
+          $("#code").text(code);
+          $("#reservationCodeModal").modal("show");
+        }).fail(function(error) {
+          toastr.error(error.responseText);
+        });
+
+      }).fail(function(error) {
+        toastr.error(error.responseText);
+      });
+
+    }).fail(function(error) {
+      toastr.error(error.responseText);
+    });
+  }
+})
+
+$('#car-edit-form').validate({
+  submitHandler: function(form) {
+    var car = {
+      id: $('#car-edit-form input[name="id"]').val(),
+      id_base: $('#car-edit-form input[name="id_base"]').val(),
+      model: $('#car-edit-form input[name="model"]').val(),
+      production_year: $('#car-edit-form input[name="production_year"]').val(),
+      fuel: $('#car-edit-form input[name="fuel"]').val(),
+      registration_number: $('#car-edit-form input[name="registration_number"]').val(),
+      daily_cost: $('#car-edit-form input[name="daily_cost"]').val(),
+      deposit: $('#car-edit-form input[name="deposit"]').val(),
+      mileage: $('#car-edit-form input[name="mileage"]').val(),
+      availability: $('#car-edit-form select[name="availability"]').val()
+    }
+    $.post( "rest/cars", car).done(function(data) {
+      toastr.success('You have updated a car');
+      $('#car-edit-modal').modal('toggle');
+      $('#cars-table').DataTable().clear().destroy();
+      get_cars();
+    }).fail(function(error) {
+      toastr.error(error.responseText);
+    });
+  }
+});
+
+function delete_car(id) {
+  $.ajax({
+    url: 'rest/car/'+id,
+    method: 'DELETE',
+    success: function(result) {
+      toastr.success('Deleted');
+      $('#cars-table').DataTable().clear().destroy();
+      get_cars();
+    },
+    error: function(){
+      toastr.success('Not deleted');
+    }
+  });
+}
+
+$(document).ready(function() {
+  $('#table_content').on( 'click', 'tr', function () {
+    if ($(this).hasClass('selected')) {
+      $(this).removeClass('selected');
+    } else {
+      $('.selected').toggleClass('selected');
+      $(this).toggleClass('selected');
+    }
+  });
+});
+</script>
+</html>

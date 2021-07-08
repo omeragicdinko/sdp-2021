@@ -1,0 +1,260 @@
+<html>
+<style>
+.error {
+  color:red;
+}
+div.wrap {
+  width: 90%;
+  margin: 0 auto 1em auto;
+  position: relative; /* the image will be absolutely-positioned relative to this */
+}
+div.wrap:first-child {
+  margin-top: 1em; /* just for aesthetic reasons, adjust or remove, to taste */
+}
+div.comment {
+  font-size: 1em;
+  position: relative; /* the arrow on the left side of the div positioned relative to this element */
+  margin-left: 60px; /* allows a 10px gutter for the arrow to fit into */
+  border-radius: 0.75em 0.75em 0.75em 0.75em;
+  background-color: #ccc;
+  line-height: 1.4em;
+  font-family: Helvetica; /* or whatever... */
+}
+div.comment::before { /* requires a fairly modern browser */
+  content: attr(data-owner); /* displays the name of the comment-owner */
+  border-radius: 0.75em 0.75em 0 0;
+  background-color: #ccc;
+  display: block;
+  text-indent: 5%; /* adjust to taste */
+  border-bottom: 3px solid #999;
+  font-weight: bold;
+}
+div.comment::after { /* again, requires a fairly modern browser */
+  content: ''; /* this property is necessary, even if only an empty string */
+  position: absolute;
+  top: 50%;
+  left: 0;
+  border: 10px solid transparent;
+  border-right: 10px solid #ccc; /* forms the 'arrow' */
+  margin: -10px 0 0 -20px;
+}
+div.comment p { /* or whatever, adjust to taste */
+  width: 90%;
+  margin: 0 auto 2em auto;
+  padding-bottom: 1em;
+  word-break: break-word;
+}
+img {
+  position: absolute;
+  top: 50%;
+  width: 50px;
+  height: 50px;
+  float: left;
+  border-radius: 10px;
+  margin-top: -25px;
+}​
+p + ol.postscript {
+  width: 90%;
+  font-size: 0.8em;
+  margin: -0.5em auto 0 auto;
+}
+ol.postscript::after {
+  content: '';
+  height: 0.5em;
+  display: block;
+  clear: both;
+}
+ol.postscript li {
+  float: left;
+  margin-right: 0.5em;
+}
+ol.postscript li.date {
+  float: right;
+  margin-right: 0;
+}
+.wrap a:link,
+.wrap a:visited {
+  color: #333;
+  text-decoration: none;
+  border-bottom: 1px solid #333;
+}
+.wrap a:hover,
+.wrap a:active,
+.wrap a:focus {
+  color: #f00;
+  border-bottom: 1px solid #f00;
+}
+.title {
+  text-align: center;
+  font-weight: 600;
+}
+.modal-title {
+  width: 100%;
+}
+.body-container {
+  width: 90%;
+  margin: 0 auto;
+}
+.button-container {
+  width: 90%;
+  margin: 0 auto;
+  text-align: end;
+}
+</style>
+<head>
+<div class="page-header">
+  <h1 class="title">Comments</h1>
+</div>
+</head>
+<body>
+<div class="body-container">
+  <div class="button-container">
+    <button  id="element2" type="button" class="btn btn-primary" data-target="#userCommentModal" onclick="open_modal_user_comment()">
+      Add a comment
+    </button>
+  </div>
+  <div class="klas" id="kk"></div>
+
+  <div class="modal" id="userCommentModal" tabindex="-1" role="dialog" aria-labelledby="userCommentModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+      <div class="modal-content">
+        <form id="user_comment_form">
+          <div class="modal-header">
+            <h4 class="modal-title" id="userCommentModalLabel">User Comment
+              <button type="button" style="float: right; margin-top: -1rem;" class="close" data-dismiss="modal" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+              </button>
+            </h4>
+          </div>
+          <div class="modal-body">
+            <div class="form-group">
+              <label for="full_name">Full Name:</label>
+              <input type="text" id="full_name" name="full_name" class="form-control"></input>
+            </div>
+            <div class="form-group">
+              <label for="email">Email:</label>
+              <input type="email" id="email" name="email" class="form-control"></input>
+            </div>
+            <div class="form-group">
+              <label for="comment_content">Comment:</label>
+              <textarea name="comment_content" rows="8" cols="61%" ></textarea>
+            </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-danger" data-dismiss="modal">Close</button>
+            <button type="submit" class="btn btn-success" >Submit Comment</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+
+<script>
+var arrayOfImages=["https://www.designyourway.net/blog/wp-content/uploads/2018/08/387011_3d-cute-wallpapers-for-desktop-hd-1-jpg_1024x768_h-700x525.jpg", "http://davidrhysthomas.co.uk/img/dexter.png", "https://image.freepik.com/free-vector/cute-spring-deer_37741-562.jpg", "https://encrypted-tbn0.gstatic.com/images?q=tbn%3AANd9GcTL91SJUZIFSjZzdlkGzBMeSZqz94DROfwCF4vevMP61eEzyAeV&usqp=CAU", "https://us.123rf.com/450wm/eastmanphoto/eastmanphoto1811/eastmanphoto181100007/134233292-cute-hedgehog-on-white-background-.jpg?ver=6", "https://images-na.ssl-images-amazon.com/images/I/81K%2BWujS5LL.png", "https://encrypted-tbn0.gstatic.com/images?q=tbn%3AANd9GcRq6tkWALHcpAxr3XB0ucHMlT4fltov5D8CsgBn5LhlJfeBa7H7&usqp=CAU"]
+
+function populate_comments(num) {
+  $.get('rest/comments', function(data) {
+    var myArray = [];
+    var numberOfValues;
+    if (num<data.length) {
+      numberOfValues=num;
+    } else {
+      numberOfValues=data.length;
+    }
+    document.getElementById("kk").innerHTML = "";
+    for (var k = 1; k <=numberOfValues; k++) {
+      var image=k-1;
+      while (image>=arrayOfImages.length) {
+        image-=arrayOfImages.length;
+      }
+      document.getElementById("kk").innerHTML+= '<div class="wrap"><img src='+arrayOfImages[image]+' ><div class="comment" id ="own'+k+'" data-owner=""><p id="content'+k+'" ></p></div></div>';
+    }
+    for (var i = 0; i < numberOfValues; i++) {
+      var numberIsInArray = false;
+      var rand = generateRandomNumb(0, data.length);
+      for (var j = 0; j < myArray.length; j++) {
+        if (rand === myArray[j]) {
+          numberIsInArray = true;
+          i--;
+        }
+      }
+      if(!numberIsInArray){
+          myArray.push(rand);
+      }
+    }
+
+    for (var i = 0; i < myArray.length; i++) {
+      var owner=data[i].full_name;
+      var content=data[i].comment_content;
+      document.getElementById("own"+(i+1)).setAttribute("data-owner",owner);
+      document.getElementById("content"+(i+1)).innerHTML=content;
+    }
+  });
+}
+/**
+ * Returns a random number between min (inclusive) and max (exclusive)
+ */
+function generateRandomNumb(min, max) {
+    return Math.floor(Math.random() * (max - min) + min);
+}
+
+function open_modal_user_comment() {
+  $("#userCommentModal").modal("toggle");
+  document.getElementById("full_name").value = get_logged_user_full_name();
+  document.getElementById("email").value = get_logged_user_email();
+}
+
+$("#user_comment_form").validate({
+  rules: {
+    full_name: {
+      required: true,
+      minlength: 3
+    },
+    email: {
+      required: true,
+      email:true,
+    },
+    comment_content: {
+      required: true
+    }
+  },
+  submitHandler: function(form) {
+    $.post('rest/comment', $("#user_comment_form").serialize()).done(function() {
+      toastr.success('Comment submited');
+      $('#userCommentModal').modal('toggle');
+      populate_comments(10);
+    }).fail(function() {
+        toastr.error('Comment not submited');
+    });
+  }
+});
+
+function get_logged_user_full_name() {
+  if (localStorage.getItem('user_token')) {
+    var user = Utils.parseJwt(localStorage.getItem('user_token'));
+    if (user.data.id) {
+      return user.data.name+" "+user.data.surname;
+    } else {
+      return null;
+    }
+  } else {
+    return null;
+  }
+}
+
+function get_logged_user_email() {
+  if (localStorage.getItem('user_token')) {
+    var user = Utils.parseJwt(localStorage.getItem('user_token'));
+    if (user.data.id) {
+      return user.data.email;
+    } else {
+      return null;
+    }
+  } else {
+    return null;
+  }
+}
+populate_comments(10);
+</script>
+</html>
